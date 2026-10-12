@@ -23,3 +23,11 @@ for directory in (DATA, CODE):
     directory.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_excel(DATA / 'io_pset_1_data.xlsx')
+
+######################################
+#### Question 1 ####
+######################################
+
+###################
+#### 1.a ####
+###################
