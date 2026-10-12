@@ -1,0 +1,94 @@
+\documentclass[12pt]{article}
+
+% --- PACKAGES ---
+\usepackage{amsmath}         % For advanced math environments and commands
+\usepackage{amssymb}         % For math symbols like \mathbb
+\usepackage[margin=1in]{geometry} % To set page margins
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{hyperref}
+\pagestyle{fancy}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\F}{\mathbb{F}}
+
+% Vectors / bold
+\newcommand{\bm}[1]{\mathbf{#1}}   % bold vectors, e.g. \bm{x}
+\newcommand{\bs}[1]{\boldsymbol{#1}} % bold symbols, e.g. \bs{\alpha}
+
+% Optimization
+\newcommand{\Lag}{\mathcal{L}}
+\newcommand{\argmax}{\mathop{\mathrm{arg\,max}}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+
+% Probability / expectations
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\prob}{\mathbb{P}}
+\newcommand{\Pro}{\mathbb{P}}
+
+% Calculus
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}  % partial derivatives
+\newcommand{\dd}[2]{\frac{d #1}{d #2}}                % total derivatives
+
+% Math operators
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\interior}{int}
+\DeclareMathOperator{\cl}{cl}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\rank}{rank}
+
+% --- THEOREM-LIKE ENVIRONMENTS ---
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Proposition}
+\newtheorem{cor}{Corollary}
+\newtheorem{lem}{Lemma}
+\newtheorem{defn}{Definition}
+\newtheorem{ex}{Example}
+\newtheorem{remark}{Remark}
+\newtheorem{exercise}{Exercise}
+
+% --- CUSTOM ENVIRONMENT FOR PROBLEMS ---
+\newcounter{problem}
+
+% Main problem environment
+\newenvironment{problem}[1][]{
+    \newpage % start each problem on a new page
+    \refstepcounter{problem}\par\noindent
+    \textbf{Problem~\theproblem\ifx&#1&\else.~#1\fi}\rmfamily\par\vspace{0.5em}
+}{\vspace{1em}}
+
+% Subproblem environment with enumerate
+\newlist{subproblems}{enumerate}{1}
+\setlist[subproblems]{label=(\alph*), leftmargin=*, itemsep=1em, parsep=0.5em}
+
+% Solution command for after each subproblem
+\newcommand{\solution}{\par\vspace{0.3em}\noindent\textit{Solution:}\par\vspace{0.3em}}
+
+% --- DOCUMENT BODY ---
+\begin{document}
+
+\fancyhf{} % clear all header and footer fields
+\fancyhead[L]{Problem Set 1}
+\fancyhead[R]{Prateek Mittal and Hayden Schrauff}
+\vspace{1em}
+
+\emph{Outside programs and AI agents used: No AI agents were used to write words on this document. For questions involved with demand estimation and counterfactuals, we first attempt to solve using ``manual'' coding using online guides (footnotes indicate where online guides were followed closely) and then re-estimated using PyBLP. This allows us to understand the mechanics behind the models we study and how to use standardized tools that are increasingly used in empirical industrial organization.} 
+
+\begin{problem} 
+We estimate the parameters in the utility function for each model in turn. Further, we include certain derivations beyond the strict scope of the questions for our pedagoligal understanding (e.g., deriving mean utility as the difference in log market shares for logit demand):
+\begin{itemize}
+    \item Logit demand: 
+\end{itemize}
+\end{problem}
+
+\end{document}
