@@ -13,7 +13,7 @@ from math import pi
 from math import log
 import random
 import pyblp
-
+from linearmodels.iv import IV2SLS
 
 MAIN = Path(__file__).resolve().parents[1]
 
@@ -64,3 +64,53 @@ df['demand_instruments0'] = df['prices']
 ols_problem = pyblp.Problem(pyblp.Formulation('1 + HMO + Network + Satisfaction + prices'), df)
 
 ols_results = ols_problem.solve(method='1s')
+
+## Instruments for Price 
+
+# BLP Instruments - Sum of characteristics of rival goods in the same market
+
+for j in ['HMO', 'Satisfaction', 'Network']: 
+        df[f'{j}_instrument'] = df.groupby(['market_ids'])[j].transform("sum") - df[j]
+
+# Hausman
+df['prod_id_len'] = df.groupby(['product_ids'])['product_ids'].transform("size") - 1
+df['hausman_instrument'] = (df.groupby(['product_ids'])['prices'].transform("sum") - df['prices'])/ df['prod_id_len']
+
+
+
+# 2 SLS
+
+# Regress Price on instruments
+
+y = df['prices']
+x = df[['HMO_instrument', 'Satisfaction_instrument', 'Network_instrument']]
+X = sm.add_constant(x)
+
+first_stage = sm.OLS(y, X).fit()
+print(first_stage.summary())
+## HORRIBLE INSTRUMENTS
+
+## Try Hausman
+
+x = df[['HMO', 'Satisfaction', 'Network', 'hausman_instrument']]
+X = sm.add_constant(x)
+first_stage_hausman = sm.OLS(df['prices'], X).fit()
+print(first_stage_hausman.summary())
+
+df['fitted_vals'] = first_stage_hausman.fittedvalues
+
+## Second Stage
+
+Y = df['ShareDiff']
+x = df[['HMO', 'Network', 'Satisfaction', 'fitted_vals']]
+X = sm.add_constant(x)
+Z = df['hausman_instrument']
+
+sls_ols = sm.OLS(Y, X).fit()
+print(sls_ols.summary())
+
+iv2sls = IV2SLS.from_formula('ShareDiff ~ 1 + HMO + Satisfaction + Network + [prices ~ hausman_instrument]', data =df).fit(cov_type='robust')
+print(iv2sls.summary)
+
+
+
