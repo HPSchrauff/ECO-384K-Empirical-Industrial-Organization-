@@ -47,7 +47,7 @@ df_ols['log_s'] = np.log(df_ols['shares'])
 # Difference 
 df_ols['ShareDiff'] = df_ols['log_s'] - df_ols['log_os']
 
-# Naive OLS
+# Naive OLShttps://mail.google.com/mail/u/0/#inbox
 y = df_ols['ShareDiff']
 x = df_ols[['HMO', 'Network', 'Satisfaction', 'prices']]
 X = sm.add_constant(x)
@@ -59,11 +59,6 @@ print(naive_ols.summary())
 # OLS treats prices as exogenous whereas PyBLP treats prices as endogenous. We will use the reserved name demand_instruments0 to instrument for prices with prices. This will let us match the OLS results above.  
 df['demand_instruments0'] = df['prices']
 
-ols_problem = pyblp.Problem(
-    pyblp.Formulation(
-        '1 + HMO + Network + Satisfaction + prices'
-    ),
-    df
-)
+ols_problem = pyblp.Problem(pyblp.Formulation('1 + HMO + Network + Satisfaction + prices'), df)
 
 ols_results = ols_problem.solve(method='1s')
