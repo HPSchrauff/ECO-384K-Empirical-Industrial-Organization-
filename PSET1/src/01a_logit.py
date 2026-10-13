@@ -35,7 +35,9 @@ df = df.rename(columns={'Market_ID': 'market_ids', 'Plan_ID': 'product_ids', 'Sh
 ###################
 #### 1.a ####
 ###################
+
 df_ols = df
+
 # Outside Share
 df_ols['TotalShare'] = df.groupby(["market_ids"])['shares'].transform("sum")
 df_ols['Outside_Share'] = 1 - df_ols['TotalShare']
@@ -47,7 +49,7 @@ df_ols['log_s'] = np.log(df_ols['shares'])
 # Difference 
 df_ols['ShareDiff'] = df_ols['log_s'] - df_ols['log_os']
 
-# Naive OLShttps://mail.google.com/mail/u/0/#inbox
+# Naive OLS
 y = df_ols['ShareDiff']
 x = df_ols[['HMO', 'Network', 'Satisfaction', 'prices']]
 X = sm.add_constant(x)
