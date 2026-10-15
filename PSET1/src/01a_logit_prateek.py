@@ -23,7 +23,9 @@ CODE = MAIN / "src"
 for directory in (DATA, CODE):
     directory.mkdir(parents=True, exist_ok=True)
 
-df = pd.read_excel(DATA / 'io_pset_1_data.xlsx')
+%cd '/Users/prateekmittal/Library/CloudStorage/OneDrive-TheUniversityofTexasatAustin/IO HW/HW 1'
+
+df = pd.read_excel("Problem Set Data PhD IO 2026.xlsx")
 
 ######################################
 #### Question 1 ####
@@ -61,9 +63,9 @@ print(naive_ols.summary())
 # OLS treats prices as exogenous whereas PyBLP treats prices as endogenous. We will use the reserved name demand_instruments0 to instrument for prices with prices. This will let us match the OLS results above.  
 df['demand_instruments0'] = df['prices']
 
-ols_problem = pyblp.Problem(pyblp.Formulation('1 + HMO + Network + Satisfaction + prices'), df)
+#ols_problem = pyblp.Problem(pyblp.Formulation('1 + HMO + Network + Satisfaction + prices'), df)
 
-ols_results = ols_problem.solve(method='1s')
+#ols_results = ols_problem.solve(method='1s')
 
 ## Instruments for Price 
 
@@ -113,4 +115,39 @@ iv2sls = IV2SLS.from_formula('ShareDiff ~ 1 + HMO + Satisfaction + Network + [pr
 print(iv2sls.summary)
 
 
+
+# Nested Logit
+
+df['nest_share'] = df.groupby(['market_ids', 'HMO'])['shares'].transform('sum')
+df['cond_share'] = df['shares'] / df['nest_share']
+df['lg_cond_share'] = np.log(df['cond_share'])
+
+
+# Naive OLS of cond_shares
+
+y = df_ols['ShareDiff']
+x = df_ols[['HMO', 'Network', 'Satisfaction', 'prices', 'lg_cond_share']]
+X = sm.add_constant(x)
+
+
+naive_ols = sm.OLS(y, X).fit(cov_type = 'cluster', cov_kwds = {'groups': df['market_ids']})
+print(naive_ols.summary())
+
+
+# Instrument for conditional shares - Number of products per nest
+
+df['n_prod_market'] = df.groupby(['market_ids', 'HMO'])['product_ids'].transform("count")
+
+y = df['lg_cond_share']
+x = df[['HMO', 'Network', 'Satisfaction', 'hausman_instrument', 'n_prod_market']]
+X = sm.add_constant(x)
+
+r = sm.OLS(y, X).fit()
+print(r.summary())
+
+iv2sls = IV2SLS.from_formula(
+    'ShareDiff ~ 1 + HMO + Satisfaction + Network + [prices + lg_cond_share ~ hausman_instrument + n_prod_market]', 
+    data=df
+).fit(cov_type='robust')
+print(iv2sls.summary)
 
