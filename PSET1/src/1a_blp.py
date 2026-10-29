@@ -25,6 +25,8 @@ for directory in (DATA, CODE):
 
 df = pd.read_excel(DATA / 'io_pset_1_data.xlsx')
 
+np.random.seed(5)
+
 ######################################
 #### Question 1 ####
 ######################################
@@ -56,62 +58,79 @@ M = df['market_ids'].nunique()
 draws = 500
 # number of product characteristics 
 K = 3
+# demand characteristics and the market id
+X = df[['market_ids', 'HMO', 'Satisfaction', 'Network']]
 
+# We found for logit that BLP instruments didn't seem great. So, we'll use Hausman instruments, which are the average prices of the same good in another market. 
 
+df['prod_length'] = df.groupby(['product_ids'])['product_ids'].transform("size") - 1
+hausman_instruments = (df.groupby(['product_ids'])['prices'].transform("sum") - df['prices']) / df['prod_length']
+
+hausman_instruments_x = pd.concat([hausman_instruments, df[['HMO', 'Network', 'Satisfaction']]], axis=1)
+
+hausman_instruments_x = sm.add_constant(hausman_instruments_x)
 
 nu = np.random.standard_normal(size = (M, draws, K))
 
-def calc_shares(delta, sigma, X, markets, nu): 
+sigma = np.zeros((3,3))
+np.fill_diagonal(sigma, 4)
+
+# We need to specify all sub functions that will be called in a minimize function
+
+def calc_shares(delta, sigma, X, nu): 
     """
     
     """
     # We need to loop through each market to match observed with computed shares for a candidate set of parameters
-    mu = X @ nu @ sigma 
-    delta = delta_old
-    f_j = (np.exp(delta + mu))
+
+    shares = []
+
+    for i, m in enumerate(df["market_ids"].unique()): 
+        delta_m = delta[df['market_ids'] == m]
+        delta_shaped = np.tile(delta_m, (draws, 1)).T
+        nu_m = nu[i]
+        X_m = X[X['market_ids'] == m]
+        X_m = X_m.drop(columns=["market_ids"])
+        mu_m = X_m @ sigma @ nu_m.T
     
-# Let's work with market 1 as an example
+        f_jm = (np.exp(delta_shaped + mu_m)) / (1 + np.sum(np.exp(delta_shaped + mu_m), axis=0))
 
-market_1 = df[df["market_ids"] == 1]
-nu_1 = nu[1]
-x = market_1[['HMO', 'Network', 'Satisfaction']]
-sigma_1 = np.zeros((3,3))
-np.fill_diagonal(sigma_1, 4)
-mu = (x @ sigma_1 @ nu_1.T).to_numpy()
-f_j1 = np.exp(delta_shaped + mu) / (1 + np.sum(np.exp(delta_shaped + mu), axis=0))
-s_j1 = np.average(f_j1, axis=1)
+        s_jm = np.average(f_jm, axis=1)
 
+        shares.append(s_jm)
+
+    shares_flat = np.concatenate(shares)
+    
+    return shares_flat
+
+shares_flat = calc_shares(delta = df['ShareDiff'], sigma = sigma, X = X, nu = nu)
 
 # We need to loop through different delta_j values until we find one such that observable shares are sufficiently close to model-implied shares
+def contraction_mapping(delta_init, sigma, X, nu, tol=1e-12, max_iter=1000):
 
-# initial guess 
-delta_0 = market_1['ShareDiff']
-delta = delta_0.to_numpy()
-# delta_shaped = np.repeat(delta, draws).reshape(4, draws)
-delta_shaped = np.tile(delta, (draws, 1)).T
-tol = 1e-6
+    error = 5
+    iteration = 0
 
-while error > tol: 
-    delta_old = delta 
-    delta = delta_old + df['log_s'] - calc_shares(delta_old, sigma, x, price, markets, nu)
-    error = np.linalg.norm(delta - delta_old, ord=np.inf)
+    delta = delta_init
+
+    while error > tol and iteration < max_iter: 
+        delta_old = delta
+
+        delta = delta_old + df['log_s'] - np.log(calc_shares(delta_old, sigma, X, nu))
+
+        error = np.linalg.norm(delta - delta_old, ord=np.inf)
+
+        iteration += 1
+
+        print(f"Iteration{iteration}")
 
     return delta
 
+delta_hat = contraction_mapping(
+    delta_init=df['ShareDiff'],
+    sigma=sigma,
+    X=X,
+    nu=nu
+)
 
-
-
-
-
-
-
-
-f_j = (np.exp())
-    
-    
-for m in np.unique(df['market_ids']): 
-
-
-
-    f_ijt = np.exp(delta_jt + mu_ijt) / (1 + np.sum(np.exp))
-
+delta_hat
