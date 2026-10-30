@@ -182,3 +182,5 @@ delta_hat = contraction_mapping(df['ShareDiff'], sigma_hat, X, nu)
 W = np.linalg.inv((Z.T @ Z) / len(df))
 beta_hat = np.linalg.inv(X1.T @ Z @ W @ Z.T @ X1) @ X1.T @ Z @ W @ Z.T @ delta_hat
 print(beta_hat)
+
+#[ 1.36912644 -2.39191968 -0.730913    2.90925006  2.86487495]
